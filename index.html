@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghostface Terminal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            overflow: hidden;
+            cursor: none; /* Hide the default cursor */
+        }
+        
+        /* Make sure all interactive elements also hide the default cursor */
+        a, button, input, .profile-card, .enter-button, .audio-control, .phone-ring {
+            cursor: none;
+        }
+        
+        .gif-background {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            opacity: 0.4;
+            filter: brightness(0.5) contrast(1.2);
+        }
+        
+        .blood-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%23600" stroke-width="5" stroke-dasharray="10,10" /></svg>'), 
+                        linear-gradient(rgba(50, 0, 0, 0.2), rgba(50, 0, 0, 0.2));
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .knife-cursor {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16,0 L14,8 L18,8 Z M16,8 L16,28 Z" stroke="white" fill="silver" stroke-width="1" /></svg>');
+            pointer-events: none;
+            z-index: 9999;
+            transform: rotate(45deg);
+        }
+        
+        .glitch-effect {
+            position: relative;
+            display: inline-block;
+            color: white;
+            font-size: 40px;
+            letter-spacing: 5px;
+            margin-bottom: 40px;
+            text-shadow: 0 0 5px rgba(255,0,0,0.7), 0 0 10px rgba(255,0,0,0.5);
+            animation: flicker 3s infinite;
+        }
+        
+        .glitch-effect::before,
+        .glitch-effect::after {
+            content: 'WHAT\'S YOUR FAVORITE PROFILE?';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch-effect::before {
+            color: #f00;
+            z-index: -1;
+            animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            animation-delay: 0.1s;
+        }
+        
+        .glitch-effect::after {
+            color: #900;
+            z-index: -2;
+            animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both infinite;
+            animation-delay: 0.2s;
+        }
+        
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+        
+        @keyframes flicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+                opacity: 0.99;
+                text-shadow: 0 0 5px rgba(255,0,0,0.7), 0 0 10px rgba(255,0,0,0.5);
+            }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+                opacity: 0.4;
+                text-shadow: none;
+            }
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: auto;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            z-index: 10;
+        }
+        
+        .profile-card {
+            position: relative;
+            background: rgba(20, 0, 0, 0.8);
+            padding: 25px;
+            margin: 15px;
+            border-radius: 5px;
+            width: 240px;
+            height: 300px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+            overflow: hidden;
+            border: 1px solid rgba(255, 0, 0, 0.2);
+        }
+        
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 45%, rgba(255, 0, 0, 0.6) 50%, transparent 55%);
+            background-size: 200% 200%;
+            animation: shine 5s infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .profile-card:hover::before {
+            opacity: 0.3;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .profile-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 0, 0, 0.7);
+        }
+        
+        .profile-card img {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 0, 0, 0.5);
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+            transition: all 0.3s ease;
+            filter: grayscale(30%) contrast(120%);
+        }
+        
+        .profile-card:hover img {
+            border-color: rgba(255, 0, 0, 0.7);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+            filter: grayscale(0%) contrast(130%);
+        }
+        
+        .profile-card h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+            color: #f00;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+        
+        .profile-card p {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 14px;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        
+        .selection-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+        
+        .selection-page a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(255, 0, 0, 0.5);
+            z-index: 999;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            opacity: 0.7;
+            animation: scanline 6s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% {
+                top: 0%;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+        
+        .blood-drip {
+            position: fixed;
+            top: -10px;
+            width: 2px;
+            height: 30px;
+            background: linear-gradient(to bottom, rgba(255,0,0,0.7), rgba(139,0,0,0.8));
+            border-radius: 0 0 2px 2px;
+            animation: drip 8s infinite;
+            z-index: 998;
+            opacity: 0.8;
+            box-shadow: 0 0 5px rgba(255,0,0,0.5);
+        }
+        
+        @keyframes drip {
+            0% { height: 0; top: -10px; opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { height: 30px; top: calc(100vh - 30px); opacity: 0.8; }
+            100% { height: 0; top: calc(100vh); opacity: 0; }
+        }
+        
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 150px rgba(50, 0, 0, 0.8);
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .data-label {
+            font-family: 'Share Tech Mono', monospace;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(255, 0, 0, 0.7);
+            width: 80%;
+        }
+        
+        .cyberpunk-button {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(90deg, rgba(139,0,0,0.4) 0%, rgba(255,0,0,0.4) 100%);
+            color: white;
+            border: none;
+            padding: 8px 0;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .profile-card:hover .cyberpunk-button {
+            transform: translateY(0);
+        }
+        
+        .loading-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            z-index: 3;
+        }
+        
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #900, #f00);
+            animation: loading 3s ease-in-out forwards;
+        }
+        
+        @keyframes loading {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+        
+        /* Splash Screen Styles */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+        
+        .splash-content {
+            text-align: center;
+        }
+        
+        .splash-logo {
+            font-size: 60px;
+            color: #f00;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            margin-bottom: 30px;
+            letter-spacing: 6px;
+            animation: pulsate 2s infinite;
+        }
+        
+        @keyframes pulsate {
+            0% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+            50% { text-shadow: 0 0 30px rgba(255, 0, 0, 1), 0 0 40px rgba(255, 0, 0, 0.6); }
+            100% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
+        }
+        
+        .enter-button {
+            background: none;
+            border: 2px solid #f00;
+            color: #f00;
+            padding: 12px 30px;
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .enter-button:hover {
+            background-color: rgba(255, 0, 0, 0.2);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+        
+        .enter-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 0, 0, 0.4), transparent);
+            transition: left 0.7s ease;
+        }
+        
+        .enter-button:hover::before {
+            left: 100%;
+        }
+        
+        /* Audio Player */
+        .audio-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 0, 0, 0.7);
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .audio-icon {
+            color: #f00;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        
+        .volume-slider {
+            width: 100px;
+            -webkit-appearance: none;
+            background: rgba(255, 0, 0, 0.2);
+            height: 5px;
+            border-radius: 2px;
+            outline: none;
+            background: linear-gradient(90deg, #900, #f00);
+        }
+        
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+        }
+        
+        .volume-slider::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.8);
+            border: none;
+        }
+        
+        .audio-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: #f00;
+            margin-left: 10px;
+            min-width: 40px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .phone-ring {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(20, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            z-index: 100;
+            animation: ring 2s infinite;
+        }
+        
+        @keyframes ring {
+            0%, 100% { transform: rotate(0deg); }
+            5%, 15%, 25% { transform: rotate(10deg); }
+            10%, 20%, 30% { transform: rotate(-10deg); }
+            35% { transform: rotate(0deg); }
+        }
+        
+        .phone-icon {
+            color: #f00;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Knife cursor -->
+    <div class="knife-cursor" id="knifeCursor"></div>
+    
+    <!-- Background animated GIF - changed to a static GIF but would use a ghostface or horror theme -->
+    <img src="/api/placeholder/1200/600" alt="Horror background" class="gif-background">
+    
+    <!-- Blood overlay -->
+    <div class="blood-overlay"></div>
+    
+    <!-- Splash Screen -->
+    <div class="splash-screen" id="splash">
+        <div class="splash-content">
+            <div class="splash-logo">Ghost_face_Gang</div>
+            <button class="enter-button" id="enterButton">DO YOU LIKE SCARY MOVIES?</button>
+        </div>
+    </div>
+    
+    <!-- Scanline effect -->
+    <div class="scanline"></div>
+    
+    <!-- Blood drips -->
+    <div class="blood-drip" style="left: 10%;"></div>
+    <div class="blood-drip" style="left: 25%; animation-delay: 2s;"></div>
+    <div class="blood-drip" style="left: 40%; animation-delay: 4s;"></div>
+    <div class="blood-drip" style="left: 65%; animation-delay: 1s;"></div>
+    <div class="blood-drip" style="left: 80%; animation-delay: 3s;"></div>
+    <div class="blood-drip" style="left: 95%; animation-delay: 5s;"></div>
+    
+    <!-- Vignette effect -->
+    <div class="vignette"></div>
+    
+    <!-- Loading bar -->
+    <div class="loading-bar"></div>
+    
+    <!-- Phone icon -->
+    <div class="phone-ring">
+        <div class="phone-icon">☎</div>
+    </div>
+    
+    <!-- Audio player -->
+    <div class="audio-control">
+        <div class="audio-icon">♪</div>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+        <div class="audio-text" id="volumeText">50%</div>
+    </div>
+    
+    <!-- Audio element (hidden) -->
+    <audio id="backgroundMusic" loop>
+        <source src="mainpage.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    
+    <!-- The actual selection page -->
+    <div class="selection-page hidden" id="mainContent">
+        <h1 class="glitch-effect">WHAT'S YOUR FAVORITE PROFILE?</h1>
+        <div class="container">
+            <a href="goober-profile.html">
+                <div class="profile-card">
+                    <img src="goober/goobers pfp.gif" alt="Goober Profile Picture">
+                    <h2>GOOBER</h2>
+                    <p>They always answer the phone first...</p>
+                    <div class="data-label">[VICTIM::STATUS: MARKED]</div>
+                    <button class="cyberpunk-button">DIAL IN</button>
+                </div>
+            </a>
+            <a href="https://oldgens.xyz/nutters-profile.html">    
+                <div class="profile-card">
+                    <img src="nutter/nutter pfp.gif" alt="Nutter Profile Picture">
+                    <h2>NUTTER</h2>
+                    <p>They never follow the rules...</p>
+                    <div class="data-label">[VICTIM::STATUS: HUNTED]</div>
+                    <button class="cyberpunk-button">DIAL IN</button>
+                </div>
+            </a>
+            <a href="reaperjr/index.html">    
+                <div class="profile-card">
+                    <img src="reaperjr/11348450.gif" alt="Reaper Profile Picture">
+                    <h2>REAPER</h2>
+                    <p>They never look behind them...</p>
+                    <div class="data-label">[VICTIM::STATUS: DOOMED]</div>
+                    <button class="cyberpunk-button">DIAL IN</button>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Custom knife cursor
+            const knifeCursor = document.getElementById('knifeCursor');
+            document.addEventListener('mousemove', function(e) {
+                knifeCursor.style.left = e.clientX + 'px';
+                knifeCursor.style.top = e.clientY + 'px';
+            });
+            
+            // Volume slider functionality
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeText = document.getElementById('volumeText');
+            const backgroundMusic = document.getElementById('backgroundMusic');
+            
+            volumeSlider.addEventListener('input', function() {
+                const value = this.value;
+                volumeText.textContent = value + '%';
+                backgroundMusic.volume = value / 100;
+            });
+            
+            // Splash screen functionality
+            const splash = document.getElementById('splash');
+            const enterButton = document.getElementById('enterButton');
+            const mainContent = document.getElementById('mainContent');
+            
+            enterButton.addEventListener('click', function() {
+                splash.style.opacity = '0';
+                setTimeout(function() {
+                    splash.classList.add('hidden');
+                    mainContent.classList.remove('hidden');
+                    // Start background music when entering
+                    backgroundMusic.play();
+                    
+                    // Add jump scare effect - random timing
+                    setTimeout(function() {
+                        const jumpScare = document.createElement('div');
+                        jumpScare.style.position = 'fixed';
+                        jumpScare.style.top = '0';
+                        jumpScare.style.left = '0';
+                        jumpScare.style.width = '100%';
+                        jumpScare.style.height = '100%';
+                        jumpScare.style.background = 'url("/api/placeholder/800/600") center/cover no-repeat';
+                        jumpScare.style.zIndex = '1001';
+                        jumpScare.style.animation = 'jumpScare 0.5s forwards';
+                        document.body.appendChild(jumpScare);
+                        
+                        // Create a style for the jump scare animation
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            @keyframes jumpScare {
+                                0% { opacity: 0; }
+                                10% { opacity: 1; }
+                                90% { opacity: 1; }
+                                100% { opacity: 0; }
+                            }
+                        `;
+                        document.head.appendChild(style);
+                        
+                        // Play scare sound
+                        const scareSound = new Audio();
+                        scareSound.volume = backgroundMusic.volume;
+                        scareSound.play();
+                        
+                        // Remove jump scare after a short time
+                        setTimeout(function() {
+                            document.body.removeChild(jumpScare);
+                        }, 500);
+                    }, Math.random() * 30000 + 15000); // Random time between 15-45 seconds
+                }, 500);
+            });
+            
+            // Phone ringing effect
+            const phoneRing = document.querySelector('.phone-ring');
+            phoneRing.addEventListener('click', function() {
+                // Phone answered effect
+                const phoneAnswer = new Audio();
+                phoneAnswer.volume = backgroundMusic.volume;
+                phoneAnswer.play();
+                
+                // Show message
+                const message = document.createElement('div');
+                message.style.position = 'fixed';
+                message.style.top = '50%';
+                message.style.left = '50%';
+                message.style.transform = 'translate(-50%, -50%)';
+                message.style.background = 'rgba(0, 0, 0, 0.8)';
+                message.style.color = '#f00';
+                message.style.padding = '20px';
+                message.style.border = '1px solid #f00';
+                message.style.fontFamily = 'Share Tech Mono, monospace';
+                message.style.zIndex = '1002';
+                message.style.maxWidth = '80%';
+                message.textContent = "Do you like scary movies? Choose a profile... if you dare.";
+                document.body.appendChild(message);
+                
+                // Remove message after a few seconds
+                setTimeout(function() {
+                    document.body.removeChild(message);
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>
