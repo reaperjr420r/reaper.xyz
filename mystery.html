@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Info Collector</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: monospace;
+            color: #00ff00;
+            background-color: #000;
+            cursor: pointer;
+        }
+        
+        #video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1000;
+            filter: brightness(0.3);
+        }
+        
+        #overlay {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            font-size: 24px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+        
+        #info-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .info-item {
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            text-shadow: 0 0 5px #00ff00;
+            position: absolute;
+        }
+        
+        .info-item.visible {
+            display: block;
+        }
+        
+        .value {
+            color: #ff0000;
+            text-shadow: 0 0 5px #ff0000;
+            display: block;
+            margin-top: 10px;
+            font-size: 28px;
+        }
+    </style>
+</head>
+<body>
+    <video autoplay muted loop id="video-background">
+        <source src="falling.mp4" type="video/mp4">
+    </video>
+    
+    <div id="overlay">
+        CLICK ANYWHERE
+    </div>
+    
+    <div id="info-container"></div>
+    
+    <script>
+        document.body.addEventListener('click', function() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('info-container').style.display = 'flex';
+            collectImportantInfo();
+        });
+        
+        function collectImportantInfo() {
+            const infoItems = [
+                {
+                    label: "IP Address:",
+                    getValue: async () => {
+                        try {
+                            // This is just to show the animation - in reality, 
+                            // getting IP would require an external service
+                            return "Collecting...";
+                        } catch {
+                            return "Unknown";
+                        }
+                    }
+                },
+                {
+                    label: "Browser:",
+                    getValue: () => navigator.userAgent
+                },
+                {
+                    label: "Screen Resolution:",
+                    getValue: () => `${screen.width}x${screen.height}`
+                },
+                {
+                    label: "Window Size:",
+                    getValue: () => `${window.innerWidth}x${window.innerHeight}`
+                },
+                {
+                    label: "Window Position:",
+                    getValue: () => `X:${window.screenX}, Y:${window.screenY}`
+                },
+                {
+                    label: "Operating System:",
+                    getValue: () => {
+                        const ua = navigator.userAgent;
+                        if (ua.indexOf("Windows") !== -1) return "Windows";
+                        if (ua.indexOf("Mac") !== -1) return "MacOS";
+                        if (ua.indexOf("Linux") !== -1) return "Linux";
+                        if (ua.indexOf("Android") !== -1) return "Android";
+                        if (ua.indexOf("iOS") !== -1) return "iOS";
+                        return "Unknown";
+                    }
+                },
+                {
+                    label: "Browser Language:",
+                    getValue: () => navigator.language
+                },
+                {
+                    label: "Hardware Cores:",
+                    getValue: () => navigator.hardwareConcurrency || "Unknown"
+                },
+                {
+                    label: "Device Memory:",
+                    getValue: () => navigator.deviceMemory ? `${navigator.deviceMemory}GB` : "Unknown"
+                },
+                {
+                    label: "Touch Support:",
+                    getValue: () => navigator.maxTouchPoints > 0 ? "Yes" : "No"
+                },
+                {
+                    label: "Battery Status:",
+                    getValue: async () => {
+                        if (navigator.getBattery) {
+                            const battery = await navigator.getBattery();
+                            return `${Math.round(battery.level * 100)}% ${battery.charging ? "(Charging)" : ""}`;
+                        }
+                        return "Unknown";
+                    }
+                },
+                {
+                    label: "Connection Type:",
+                    getValue: () => {
+                        if (navigator.connection) {
+                            return navigator.connection.effectiveType || navigator.connection.type || "Unknown";
+                        }
+                        return "Unknown";
+                    }
+                },
+                {
+                    label: "Audio Output Devices:",
+                    getValue: async () => {
+                        if (navigator.mediaDevices) {
+                            try {
+                                const devices = await navigator.mediaDevices.enumerateDevices();
+                                const audioOutputs = devices.filter(d => d.kind === 'audiooutput').length;
+                                return audioOutputs;
+                            } catch (e) {
+                                return "Unknown";
+                            }
+                        }
+                        return "Unknown";
+                    }
+                },
+                {
+                    label: "Camera Access:",
+                    getValue: async () => {
+                        if (navigator.permissions) {
+                            try {
+                                const result = await navigator.permissions.query({name: 'camera'});
+                                return result.state;
+                            } catch (e) {
+                                return "Unknown";
+                            }
+                        }
+                        return "Unknown";
+                    }
+                },
+                {
+                    label: "Microphone Access:",
+                    getValue: async () => {
+                        if (navigator.permissions) {
+                            try {
+                                const result = await navigator.permissions.query({name: 'microphone'});
+                                return result.state;
+                            } catch (e) {
+                                return "Unknown";
+                            }
+                        }
+                        return "Unknown";
+                    }
+                },
+                {
+                    label: "Page URL:",
+                    getValue: () => window.location.href
+                },
+                {
+                    label: "Referrer:",
+                    getValue: () => document.referrer || "Direct"
+                },
+                {
+                    label: "GPU Renderer:",
+                    getValue: () => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            const gl = canvas.getContext('webgl');
+                            if (gl) {
+                                return gl.getParameter(gl.RENDERER);
+                            }
+                            return "Unknown";
+                        } catch(e) {
+                            return "Unknown";
+                        }
+                    }
+                },
+                {
+                    label: "Color Depth:",
+                    getValue: () => `${screen.colorDepth}-bit`
+                },
+                {
+                    label: "Time Zone:",
+                    getValue: () => Intl.DateTimeFormat().resolvedOptions().timeZone
+                }
+            ];
+            
+            displayInfoItemsSequentially(infoItems);
+        }
+        
+        async function displayInfoItemsSequentially(items) {
+            const container = document.getElementById('info-container');
+            let currentItem = null;
+            
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                const div = document.createElement('div');
+                div.className = 'info-item';
+                
+                let value;
+                if (typeof item.getValue === 'function') {
+                    if (item.getValue.constructor.name === 'AsyncFunction') {
+                        value = await item.getValue();
+                    } else {
+                        value = item.getValue();
+                    }
+                } else {
+                    value = "Error";
+                }
+                
+                div.innerHTML = `${item.label} <span class="value">${value}</span>`;
+                container.appendChild(div);
+                
+                // Remove previous item if exists
+                if (currentItem) {
+                    currentItem.classList.remove('visible');
+                    currentItem.remove();
+                }
+                
+                // Show current item
+                currentItem = div;
+                div.classList.add('visible');
+                
+                // Wait shorter time before showing next item (1 second instead of 3)
+                if (i < items.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            
+            // After displaying all items, show a message that data collection is complete
+            await new Promise(resolve => setTimeout(() => {
+                if (currentItem) {
+                    currentItem.remove();
+                    
+                    const completionDiv = document.createElement('div');
+                    completionDiv.className = 'info-item';
+                    completionDiv.innerHTML = "Data Collection Complete <span class='value'>✓</span>";
+                    container.appendChild(completionDiv);
+                    completionDiv.classList.add('visible');
+                }
+                resolve();
+            }, 1000));
+        }
+    </script>
+</body>
+</html>
