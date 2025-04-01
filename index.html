@@ -38,7 +38,7 @@
         }
         
         /* Make sure all interactive elements also hide the default cursor */
-        a, button, input, .profile-card, .enter-button, .audio-control, .phone-ring {
+        a, button, input, .profile-card, .enter-button, .audio-control, .phone-ring, .question-mark-button {
             cursor: none;
         }
         
@@ -514,6 +514,44 @@
             color: #f00;
             font-size: 20px;
         }
+        
+        /* Question Mark Button Styles */
+        .question-mark-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: rgba(20, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(255, 0, 0, 0.5);
+            z-index: 100;
+            font-size: 30px;
+            color: #f00;
+            text-decoration: none;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .question-mark-button:hover {
+            background-color: rgba(50, 0, 0, 0.8);
+            border-color: rgba(255, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .question-mark-button {
+            animation: pulse 2s infinite;
+        }
     </style>
 </head>
 <body>
@@ -555,6 +593,9 @@
     <div class="phone-ring">
         <div class="phone-icon">☎</div>
     </div>
+    
+    <!-- Question Mark Button (New) -->
+    <a href="another.html" class="question-mark-button">?</a>
     
     <!-- Audio player -->
     <div class="audio-control">
