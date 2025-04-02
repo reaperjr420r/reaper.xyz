@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coke Drip's Profile</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        
+        body {
+            background-color: #000;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+            height: 100vh;
+            overflow: hidden;
+            cursor: none; /* Hide the default cursor */
+        }
+        
+        /* Make sure all interactive elements also hide the default cursor */
+        a, button, input {
+            cursor: none;
+        }
+        
+        .gif-background {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            pointer-events: none;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            opacity: 0.4;
+            filter: brightness(0.5) contrast(1.2);
+        }
+        
+        .powder-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect x="0" y="0" width="100" height="100" fill="none" stroke="%23fff" stroke-width="0.5" stroke-dasharray="1,3" /></svg>'), 
+                        linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05));
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .razor-cursor {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M4,16 L28,16 M4,16 L8,12 M4,16 L8,20 M28,16 L24,12 M28,16 L24,20" stroke="white" fill="none" stroke-width="2" /></svg>');
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        .glitch-effect {
+            position: relative;
+            display: inline-block;
+            color: white;
+            font-size: 40px;
+            letter-spacing: 5px;
+            margin-bottom: 40px;
+            text-shadow: 0 0 5px rgba(255,255,255,0.7), 0 0 10px rgba(255,255,255,0.5);
+            animation: flicker 3s infinite;
+        }
+        
+        .glitch-effect::before,
+        .glitch-effect::after {
+            content: 'COKE DRIP';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+        }
+        
+        .glitch-effect::before {
+            color: #0af;
+            z-index: -1;
+            animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            animation-delay: 0.1s;
+        }
+        
+        .glitch-effect::after {
+            color: #009;
+            z-index: -2;
+            animation: glitch 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) reverse both infinite;
+            animation-delay: 0.2s;
+        }
+        
+        @keyframes glitch {
+            0% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+            100% {
+                transform: translate(0);
+            }
+        }
+        
+        @keyframes flicker {
+            0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% {
+                opacity: 0.99;
+                text-shadow: 0 0 5px rgba(255,255,255,0.7), 0 0 10px rgba(255,255,255,0.5);
+            }
+            20%, 21.999%, 63%, 63.999%, 65%, 69.999% {
+                opacity: 0.4;
+                text-shadow: none;
+            }
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: auto;
+            background: rgba(10, 10, 25, 0.8);
+            padding: 25px;
+            border-radius: 5px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 10;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 20px;
+            display: none; /* Initially hidden */
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 45%, rgba(255, 255, 255, 0.6) 50%, transparent 55%);
+            background-size: 200% 200%;
+            animation: shine 5s infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        
+        .container:hover::before {
+            opacity: 0.3;
+        }
+        
+        @keyframes shine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .profile img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            object-fit: cover;
+            margin: 0 auto 20px;
+            transition: transform 0.3s ease-in-out, border-color 0.3s;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            filter: brightness(110%) contrast(120%);
+            display: block;
+        }
+        
+        .profile img:hover {
+            transform: scale(1.1);
+            border-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+            filter: brightness(120%) contrast(130%);
+        }
+        
+        .profile h1 {
+            margin-top: 10px;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        
+        .profile p {
+            color: #ccc;
+            margin-bottom: 20px;
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-transform: lowercase;
+        }
+        
+        .links {
+            margin-top: 20px;
+        }
+        
+        .link {
+            display: block;
+            background: rgba(34, 34, 34, 0.6);
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: transform 0.3s ease-in-out, background 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.7s ease;
+        }
+        
+        .link:hover::before {
+            left: 100%;
+        }
+        
+        .link:hover {
+            background: rgba(51, 51, 51, 0.8);
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.5);
+            z-index: 999;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            opacity: 0.7;
+            animation: scanline 6s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% {
+                top: 0%;
+            }
+            100% {
+                top: 100%;
+            }
+        }
+        
+        .coke-line {
+            position: fixed;
+            width: 3px;
+            height: 50px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9), rgba(255,255,255,0.8));
+            border-radius: 1px;
+            transform: rotate(45deg);
+            z-index: 998;
+            opacity: 0.8;
+            box-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 150px rgba(0, 0, 50, 0.8);
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .volume-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(20, 20, 20, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .volume-icon {
+            color: #fff;
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100px;
+            height: 8px;
+            background: linear-gradient(90deg, #09f, #fff);
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            border: none;
+        }
+        
+        input[type="range"]:hover::-webkit-slider-thumb,
+        input[type="range"]:hover::-moz-range-thumb {
+            transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+        
+        .volume-text {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: #fff;
+            margin-left: 10px;
+            min-width: 40px;
+        }
+        
+        .click-to-enter-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .enter-text {
+            font-size: 50px;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            font-weight: bold;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease-in-out, text-shadow 0.3s;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: pulsate 2s infinite;
+        }
+        
+        @keyframes pulsate {
+            0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+            50% { text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 40px rgba(255, 255, 255, 0.6); }
+            100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+        }
+        
+        .enter-text:hover {
+            transform: scale(1.1);
+        }
+        
+        .loading-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            z-index: 3;
+        }
+        
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #fff, #09f);
+            animation: loading 3s ease-in-out forwards;
+        }
+        
+        @keyframes loading {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+        
+        .data-label {
+            font-family: 'Share Tech Mono', monospace;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            width: 80%;
+        }
+        
+        /* Cocaine particles falling effect */
+        .snow-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        
+        @keyframes fall {
+            from {
+                transform: translateY(-10vh) translateX(0);
+            }
+            to {
+                transform: translateY(100vh) translateX(100px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Razor cursor -->
+    <div class="razor-cursor" id="razorCursor"></div>
+    
+    <!-- Background animated GIF (placeholder) -->
+    <img src="coke bg.gif" alt="" class="gif-background">
+    
+    <!-- Powder overlay -->
+    <div class="powder-overlay"></div>
+    
+    <!-- Scanline effect -->
+    <div class="scanline"></div>
+    
+    <!-- Cocaine lines in different positions -->
+    <div class="coke-line" style="top: 20%; left: 20%;"></div>
+    <div class="coke-line" style="top: 40%; left: 75%;"></div>
+    <div class="coke-line" style="top: 70%; left: 30%;"></div>
+    <div class="coke-line" style="top: 60%; left: 85%;"></div>
+    <div class="coke-line" style="top: 30%; left: 55%;"></div>
+    
+    <!-- Vignette effect -->
+    <div class="vignette"></div>
+    
+    <!-- Loading bar -->
+    <div class="loading-bar"></div>
+    
+    <!-- Click to Enter Section -->
+    <div class="click-to-enter-container" id="enterScreen">
+        <div class="enter-text">
+                CLICK TO ENTER
+        </div>
+    </div>
+
+    <!-- Profile Section (Initially Hidden) -->
+    <div class="container" id="profile-container">
+        <h1 class="glitch-effect">COKE DRIP</h1>
+        <div class="profile">
+            <img src="coke pfp.png" alt="Coke Drip Profile Picture" id="profile-pic">
+            <p>Member of ghostface</p>
+            <div class="data-label">[high grade | uncut]</div>
+        </div>
+        <div class="links">
+            <a href="#" class="link">Discord</a>
+            <a href="#" class="link">Telegram</a>
+            <a href="#" class="link">Instagram</a>
+        </div>
+    </div>
+    
+    <!-- Volume Slider -->
+    <div class="volume-container">
+        <div class="volume-icon">♪</div>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.25">
+        <div class="volume-text" id="volume-text">25%</div>
+    </div>
+
+ <!-- Audio player -->
+<audio id="audio-player" loop>
+    <source src="coke song.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+</audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create falling cocaine particles
+            createSnowParticles();
+            
+            // Custom razor cursor
+            const razorCursor = document.getElementById('razorCursor');
+            document.addEventListener('mousemove', function(e) {
+                razorCursor.style.left = e.clientX + 'px';
+                razorCursor.style.top = e.clientY + 'px';
+            });
+            
+            // Function to start the profile and music
+            function startProfile() {
+                // Hide the "Click to Enter" section
+                document.getElementById('enterScreen').style.display = 'none';
+                
+                // Show the profile section
+                document.getElementById('profile-container').style.display = 'block';
+
+                // Start playing the audio
+                const audioPlayer = document.getElementById('audio-player');
+                audioPlayer.play().catch(err => {
+                    console.error('Audio playback failed:', err);
+                });
+                
+                // Add sniff sound effect and screen shake
+                const sniffSound = new Audio();
+                sniffSound.volume = audioPlayer.volume;
+                
+                // Screen shake effect
+                document.body.style.animation = 'shake 0.5s';
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes shake {
+                        0%, 100% { transform: translateX(0); }
+                        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                        20%, 40%, 60%, 80% { transform: translateX(5px); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                // Remove animation after it completes
+                setTimeout(function() {
+                    document.body.style.animation = '';
+                }, 500);
+                
+                // Add jump scare effect with random timing
+                setTimeout(function() {
+                    // Quick white flash
+                    const flashEffect = document.createElement('div');
+                    flashEffect.style.position = 'fixed';
+                    flashEffect.style.top = '0';
+                    flashEffect.style.left = '0';
+                    flashEffect.style.width = '100%';
+                    flashEffect.style.height = '100%';
+                    flashEffect.style.backgroundColor = '#fff';
+                    flashEffect.style.zIndex = '1001';
+                    flashEffect.style.animation = 'flash 0.3s forwards';
+                    document.body.appendChild(flashEffect);
+                    
+                    // Create a style for the flash animation
+                    const flashStyle = document.createElement('style');
+                    flashStyle.textContent = `
+                        @keyframes flash {
+                            0% { opacity: 0; }
+                            10% { opacity: 1; }
+                            100% { opacity: 0; }
+                        }
+                    `;
+                    document.head.appendChild(flashStyle);
+                    
+                    // Remove flash after short time
+                    setTimeout(function() {
+                        document.body.removeChild(flashEffect);
+                    }, 300);
+                }, Math.random() * 30000 + 15000); // Random time between 15-45 seconds
+            }
+            
+            // Set the click to enter handler
+            document.querySelector('.click-to-enter-container').addEventListener('click', startProfile);
+
+            // Profile picture click to mute/unmute
+            const profilePic = document.getElementById('profile-pic');
+            profilePic.addEventListener('click', () => {
+                const audioPlayer = document.getElementById('audio-player');
+                if (audioPlayer.muted) {
+                    audioPlayer.muted = false;
+                    profilePic.style.border = "3px solid rgba(255, 255, 255, 0.5)";
+                } else {
+                    audioPlayer.muted = true;
+                    profilePic.style.border = "3px solid white";
+                }
+            });
+
+            // Volume control
+            const volumeSlider = document.getElementById('volume-slider');
+            const volumeText = document.getElementById('volume-text');
+            volumeSlider.addEventListener('input', () => {
+                const audioPlayer = document.getElementById('audio-player');
+                const value = volumeSlider.value;
+                audioPlayer.volume = value;
+                volumeText.textContent = Math.round(value * 100) + '%';
+            });
+            
+            // Create cocaine powder particles effect
+            function createSnowParticles() {
+                const numberOfParticles = 50;
+                
+                for (let i = 0; i < numberOfParticles; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('snow-particle');
+                    
+                    // Random position, size and animation duration
+                    const size = Math.random() * 3 + 1;
+                    const left = Math.random() * 100 + 'vw';
+                    const animationDuration = Math.random() * 6 + 4;
+                    const delay = Math.random() * 5;
+                    
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    particle.style.left = left;
+                    particle.style.opacity = Math.random() * 0.8 + 0.2;
+                    particle.style.animationDuration = animationDuration + 's';
+                    particle.style.animationDelay = delay + 's';
+                    
+                    document.body.appendChild(particle);
+                }
+            }
+            
+            // Block right-click and inspect element attempts
+            document.addEventListener('contextmenu', function(event) {
+                event.preventDefault(); // Disable right-click
+                alert("Right-click is disabled!");
+            });
+
+            // Disable key combinations for inspecting
+            document.addEventListener('keydown', function(event) {
+                if ((event.ctrlKey && event.shiftKey && event.key === 'I') || event.key === 'F12') {
+                    event.preventDefault(); // Block the action
+                }
+                // Detecting when Ctrl key is pressed
+                if (event.ctrlKey) {
+                    event.preventDefault(); // Block default action of Ctrl key
+                }
+            });
+        });
+    </script>
+</body>
+</html>
